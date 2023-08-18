@@ -48,7 +48,7 @@ public class ProductController {
         sortBy = Optional.ofNullable(sortBy).orElse("name");
         sortDirection = Optional.ofNullable(sortDirection).orElse(Sort.Direction.ASC);
         Sort sort = Sort.by(sortDirection, sortBy);
-        Page<Product> productPage = productService.listProducts(Optional.ofNullable(name), Optional.ofNullable(size),
+        Page<Product> productPage = productService.listProducts(name, size,
                 PageRequest.of(pageNumber, pageSize, sort));
         PagedList<ProductDto> productPagedList = PagedList.getPagedList(productPage,
                 productMapper::productToProductDto);
