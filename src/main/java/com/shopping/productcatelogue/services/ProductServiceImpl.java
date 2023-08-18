@@ -27,14 +27,15 @@ public class ProductServiceImpl implements ProductService {
         QProduct qProduct = QProduct.product;
         List<BooleanExpression> booleanExpressionList = new ArrayList<>();
         if (Optional.ofNullable(name).isPresent()) {
-            BooleanExpression productHasName = qProduct.name.eq(name);
+            BooleanExpression productHasName = qProduct.name.contains(name);
             booleanExpressionList.add(productHasName);
         }
         if (Optional.ofNullable(size).isPresent()) {
             BooleanExpression productHasSize = qProduct.size.eq(size);
             booleanExpressionList.add(productHasSize);
         }
-        Optional<BooleanExpression> joinedBooleanExpression = booleanExpressionList.stream().reduce((b, c) -> b.and(c));
+        Optional<BooleanExpression> joinedBooleanExpression = booleanExpressionList.stream()
+                .reduce(BooleanExpression::and);
         if (joinedBooleanExpression.isPresent())
             return productRepository.findAll(joinedBooleanExpression.get(), pageRequest);
         return productRepository.findAll(pageRequest);

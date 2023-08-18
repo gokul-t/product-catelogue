@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -48,11 +49,12 @@ public class ProductController {
                 PageRequest.of(pageNumber, pageSize, sort));
         PagedList<ProductDto> productPagedList = PagedList.getPagedList(productPage,
                 productMapper::productToProductDto);
-        return new ResponseEntity<PagedList<ProductDto>>(productPagedList, HttpStatus.OK);
+        return new ResponseEntity<>(productPagedList, HttpStatus.OK);
     }
 
+
     @GetMapping("/{productId}")
-    public String getProductsById() {
+    public String getProductsById(@Valid @Min(1L) @PathVariable Long productId) {
         log.info("Hello, World");
         return "Hello, World";
     }

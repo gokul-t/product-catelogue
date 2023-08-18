@@ -20,19 +20,31 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 public class ProductContoller {
     private final MockMvc mockMvc;
+
     @Autowired
-    public ProductContoller(MockMvc mockMvc){
+    public ProductContoller(MockMvc mockMvc) {
         this.mockMvc = mockMvc;
     }
+
     @Test
-    public void shouldReturnProductList() throws Exception{
-        mockMvc.perform(get("/api/products")).andDo(print()).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.size",is(25)));
+    public void shouldReturnProductList() throws Exception {
+        mockMvc.perform(
+                get("/api/products")
+                        .param("pageNumber", "0")
+                        .param("pageSize", "10"))
+                .andDo(print()).andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.size", is(10)));
     }
+
     @Test
-    public void shouldReturnProduct() throws Exception{
-        mockMvc.perform(get("/api/products/{productId}",123)).andDo(print()).andExpect(status().isOk())
-        .andExpect(content().string(containsString("Hello, World")));
+    public void shouldThrowExceptionForNotValidProductId() throws Exception {
+        mockMvc.perform(get("/api/products/{productId}", "hello")).andDo(print()).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldReturnProduct() throws Exception {
+        mockMvc.perform(get("/api/products/{productId}", 123)).andDo(print()).andExpect(status().isOk())
+                .andExpect(content().string(containsString("Hello, World")));
     }
 }

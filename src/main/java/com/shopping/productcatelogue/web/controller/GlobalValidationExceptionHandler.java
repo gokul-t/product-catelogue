@@ -2,6 +2,7 @@ package com.shopping.productcatelogue.web.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.http.HttpStatus;
@@ -26,11 +27,13 @@ public class GlobalValidationExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An error occurred", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An error occurred",
+                ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler({BindException.class, ConstraintViolationException.class, MethodArgumentTypeMismatchException.class})
+    @ExceptionHandler({ BindException.class, ConstraintViolationException.class,
+            MethodArgumentTypeMismatchException.class })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ResponseEntity<ValidationErrorResponse> handleValidationException(Exception ex) {
@@ -42,31 +45,31 @@ public class GlobalValidationExceptionHandler {
                 ValidationErrorResponse.FieldError error = new ValidationErrorResponse.FieldError(
                         fieldError.getField(),
                         fieldError.getDefaultMessage(),
-                        fieldError.getRejectedValue()
-                );
+                        fieldError.getRejectedValue());
                 fieldErrors.add(error);
             }
         } else if (ex instanceof ConstraintViolationException) {
-            Set<ConstraintViolation<?>> constraintViolations = ((ConstraintViolationException) ex).getConstraintViolations();
+            Set<ConstraintViolation<?>> constraintViolations = ((ConstraintViolationException) ex)
+                    .getConstraintViolations();
             for (ConstraintViolation<?> violation : constraintViolations) {
                 ValidationErrorResponse.FieldError error = new ValidationErrorResponse.FieldError(
                         violation.getPropertyPath().toString(),
                         violation.getMessage(),
-                        violation.getInvalidValue()
-                );
+                        violation.getInvalidValue());
                 fieldErrors.add(error);
             }
         } else if (ex instanceof MethodArgumentTypeMismatchException) {
             MethodArgumentTypeMismatchException mismatchException = (MethodArgumentTypeMismatchException) ex;
             ValidationErrorResponse.FieldError error = new ValidationErrorResponse.FieldError(
                     mismatchException.getName(),
-                    "Failed to convert value to " + mismatchException.getRequiredType().getSimpleName(),
-                    mismatchException.getValue()
-            );
+                    "Failed to convert value to " + Optional.ofNullable(mismatchException.getRequiredType())
+                            .map(Class::getSimpleName).orElse("unknown type"),
+                    mismatchException.getValue());
             fieldErrors.add(error);
         }
 
-        ValidationErrorResponse errorResponse = new ValidationErrorResponse(HttpStatus.BAD_REQUEST.value(), "Validation Error", fieldErrors);
+        ValidationErrorResponse errorResponse = new ValidationErrorResponse(HttpStatus.BAD_REQUEST.value(),
+                "Validation Error", fieldErrors);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 }
