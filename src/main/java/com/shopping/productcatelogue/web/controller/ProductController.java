@@ -42,7 +42,7 @@ public class ProductController {
             @Valid @Pattern(regexp = "Large|Medium|Small", message = "Invalid size") @RequestParam(required = false) String size,
             @Valid @PositiveOrZero() @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
             @Valid @Min(1) @Max(100) @RequestParam(required = false, defaultValue = "25") Integer pageSize,
-            @Valid @RequestParam(required = false, defaultValue = "id") String sortBy,
+            @Valid @Pattern(regexp = "id|name|size|quantity", message = "Invalid sort by") @RequestParam(required = false, defaultValue = "id") String sortBy,
             @Valid @RequestParam(required = false, defaultValue = "ASC") Sort.Direction sortDirection) {
         Sort sort = Sort.by(sortDirection, sortBy);
         Page<Product> productPage = productService.listProducts(name, size,
