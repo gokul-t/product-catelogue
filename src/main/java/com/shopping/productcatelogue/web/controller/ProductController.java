@@ -1,7 +1,5 @@
 package com.shopping.productcatelogue.web.controller;
 
-import java.util.Optional;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -20,17 +18,19 @@ import com.shopping.productcatelogue.web.model.PagedList;
 import com.shopping.productcatelogue.web.model.ProductDto;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
 @Validated
+@Slf4j
 public class ProductController {
-
-    private static final Integer DEFAULT_PAGE_NUMBER = 0;
-    private static final Integer DEFAULT_PAGE_SIZE = 25;
 
     private final ProductService productService;
     private final ProductMapper productMapper;
@@ -38,15 +38,11 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<PagedList<ProductDto>> listProducts(
             @Valid @RequestParam(required = false) String name,
-            @Valid @RequestParam(required = false) String size,
-            @Valid @PositiveOrZero() @RequestParam(required = false) Integer pageNumber,
-            @Valid @RequestParam(required = false) Integer pageSize,
-            @Valid @RequestParam(required = false) String sortBy,
-            @Valid @RequestParam(required = false) Sort.Direction sortDirection) {
-        pageNumber = Optional.ofNullable(pageNumber).orElse(DEFAULT_PAGE_NUMBER);
-        pageSize = Optional.ofNullable(pageSize).orElse(DEFAULT_PAGE_SIZE);
-        sortBy = Optional.ofNullable(sortBy).orElse("name");
-        sortDirection = Optional.ofNullable(sortDirection).orElse(Sort.Direction.ASC);
+            @Valid @Pattern(regexp = "Large|Medium|Small", message = "Invalid size") @RequestParam(required = false) String size,
+            @Valid @PositiveOrZero() @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
+            @Valid @Min(1) @Max(100) @RequestParam(required = false, defaultValue = "25") Integer pageSize,
+            @Valid @RequestParam(required = false, defaultValue = "id") String sortBy,
+            @Valid @RequestParam(required = false, defaultValue = "ASC") Sort.Direction sortDirection) {
         Sort sort = Sort.by(sortDirection, sortBy);
         Page<Product> productPage = productService.listProducts(name, size,
                 PageRequest.of(pageNumber, pageSize, sort));
@@ -57,6 +53,7 @@ public class ProductController {
 
     @GetMapping("/{productId}")
     public String getProductsById() {
-        return "hii";
+        log.info("Hello, World");
+        return "Hello, World";
     }
 }

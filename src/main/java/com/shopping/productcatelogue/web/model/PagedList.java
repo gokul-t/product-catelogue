@@ -15,9 +15,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class PagedList<T> extends PageImpl<T> {
 
-    public static <T1, T2>  PagedList<T2> getPagedList(Page<T1> page, Function<? super T1, ? extends T2> function) {
+    public static <T1, T2>  PagedList<T2> getPagedList(Page<T1> page, Function<? super T1, ? extends T2> mapperFunction) {
         PagedList<T2> pagedList = new PagedList<T2>(
-                page.getContent().stream().map(function).collect(Collectors.toList()),
+                page.getContent().stream().map(mapperFunction).collect(Collectors.toList()),
                 PageRequest.of(page.getPageable().getPageNumber(), page.getPageable().getPageSize()),
                 page.getTotalElements());
         return pagedList;
