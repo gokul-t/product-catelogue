@@ -14,5 +14,5 @@ public interface ProductService {
 
     Optional<Product> getProductById(Long productId);
 
-    Product createProduct(Product product);
+    Product saveProduct(Product product);
 }

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.shopping.productcatelogue.web.model.ErrorResponse;
 import com.shopping.productcatelogue.web.model.ValidationErrorResponse;
@@ -28,11 +29,21 @@ import lombok.extern.slf4j.Slf4j;
 public class GlobalValidationExceptionHandler {
 
     @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An error occurred",
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error",
                 ex.getMessage());
-        log.error("An error occurred", ex);
+        log.error(ex.getMessage(), ex);
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    @ResponseBody
+    public ResponseEntity<ErrorResponse> handleGlobalException(ResponseStatusException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(ex.getStatusCode().value(), ex.getReason(),
+                ex.getMessage());
+        return new ResponseEntity<>(errorResponse, ex.getStatusCode());
     }
 
     @ExceptionHandler({ BindException.class, ConstraintViolationException.class,
