@@ -1,22 +1,19 @@
 package com.shopping.productcatelogue.domain;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Entity
-public class Product  {
-    @Id
-	@GeneratedValue
-	private Long id;
+@EqualsAndHashCode(callSuper = true)
+public class Product extends BaseEntity {
 	private String name;
 	private Integer quantity;
 	private String size;

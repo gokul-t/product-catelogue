@@ -6,7 +6,7 @@ import org.mapstruct.MappingConstants;
 import com.shopping.productcatelogue.domain.Product;
 import com.shopping.productcatelogue.web.model.ProductDto;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = { DateMapper.class })
 public interface ProductMapper {
     Product productDtoToProduct(ProductDto productDto);
 

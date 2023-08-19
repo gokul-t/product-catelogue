@@ -1,8 +1,6 @@
 package com.shopping.productcatelogue.web.controller;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -40,11 +38,12 @@ public class ProductContoller {
     @Test
     public void shouldThrowExceptionForNotValidProductId() throws Exception {
         mockMvc.perform(get("/api/products/{productId}", "hello")).andDo(print()).andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/products/{productId}", "100")).andDo(print()).andExpect(status().isBadRequest());
     }
 
     @Test
     public void shouldReturnProduct() throws Exception {
-        mockMvc.perform(get("/api/products/{productId}", 123)).andDo(print()).andExpect(status().isOk())
-                .andExpect(content().string(containsString("Hello, World")));
+        mockMvc.perform(get("/api/products/{productId}", 1)).andDo(print()).andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 }

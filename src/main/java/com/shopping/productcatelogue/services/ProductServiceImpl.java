@@ -22,28 +22,33 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
 
     @Override
-    public Page<Product> listProducts(String name, String size,
+    public Page<Product> listProducts(Optional<String> nameOptional,
+            Optional<String> sizeOptional,
             PageRequest pageRequest) {
         QProduct qProduct = QProduct.product;
         List<BooleanExpression> booleanExpressionList = new ArrayList<>();
-        if (Optional.ofNullable(name).isPresent()) {
+        nameOptional.ifPresent(name -> {
             BooleanExpression productHasName = qProduct.name.contains(name);
             booleanExpressionList.add(productHasName);
-        }
-        if (Optional.ofNullable(size).isPresent()) {
+        });
+        sizeOptional.ifPresent(size -> {
             BooleanExpression productHasSize = qProduct.size.eq(size);
             booleanExpressionList.add(productHasSize);
-        }
-        Optional<BooleanExpression> joinedBooleanExpression = booleanExpressionList.stream()
-                .reduce(BooleanExpression::and);
-        if (joinedBooleanExpression.isPresent())
-            return productRepository.findAll(joinedBooleanExpression.get(), pageRequest);
-        return productRepository.findAll(pageRequest);
+        });
+        return booleanExpressionList.stream()
+                .reduce(BooleanExpression::and)
+                .map(joined -> productRepository.findAll(joined, pageRequest))
+                .orElseGet(() -> productRepository.findAll(pageRequest));
     }
 
     @Override
     public Optional<Product> getProductById(Long productId) {
-        throw new UnsupportedOperationException("Unimplemented method 'getProductById'");
+        return productRepository.findById(productId);
+    }
+
+    @Override
+    public Product createProduct(Product product) {
+        return productRepository.save(product);
     }
 
 }
