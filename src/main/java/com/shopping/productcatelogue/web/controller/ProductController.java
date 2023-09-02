@@ -1,22 +1,20 @@
 package com.shopping.productcatelogue.web.controller;
 
 import java.net.URI;
-import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Supplier;
 
-import org.mapstruct.ap.shaded.freemarker.core.LocalContext;
-import org.springframework.cglib.core.Local;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,6 +27,7 @@ import com.shopping.productcatelogue.services.ProductService;
 import com.shopping.productcatelogue.web.mappers.ProductMapper;
 import com.shopping.productcatelogue.web.model.PagedList;
 import com.shopping.productcatelogue.web.model.ProductDto;
+import com.shopping.productcatelogue.web.utils.MessageUtils;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -37,24 +36,35 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
 @Validated
+@Slf4j
 public class ProductController {
 
         private final ProductService productService;
         private final ProductMapper productMapper;
-        private final MessageSource messageSource;
+        private final MessageUtils messageUtils;
 
-        private String getMessage(String code) {
-                return getMessage(code, code);
+        private ResponseStatusException productNotValid() {
+                return new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
+                                messageUtils.getMessage("products.errors.not_valid"));
+
         }
 
-        private String getMessage(String code, String defaultMessage) {
-                Locale locale = LocaleContextHolder.getLocale();
-                return messageSource.getMessage(code, null, defaultMessage, locale);
+        private ResponseStatusException productNotFound(Long productId) {
+                log.debug("Product id Not Found: {}", productId.toString());
+                return new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                messageUtils.getMessage(
+                                                "products.errors.not_found")
+                                                + productId);
+        }
+
+        private Supplier<ResponseStatusException> productNotFoundSupplier(Long productId) {
+                return () -> productNotFound(productId);
         }
 
         @GetMapping
@@ -79,8 +89,7 @@ public class ProductController {
                         @Valid @Min(1L) @Max(Long.MAX_VALUE) @PathVariable Long productId) {
                 return productService.getProductById(productId).map(productMapper::productToProductDto)
                                 .map(ResponseEntity::ok)
-                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                                getMessage("products.errors.not_found") + productId));
+                                .orElseThrow(productNotFoundSupplier(productId));
         }
 
         @PostMapping
@@ -88,11 +97,38 @@ public class ProductController {
                 Product product = Optional.of(productDto)
                                 .map(productMapper::productDtoToProduct)
                                 .map(productService::saveProduct)
-                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                                getMessage("products.errors.not_valid")));
+                                .orElseThrow(this::productNotValid);
                 URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{productId}")
                                 .buildAndExpand(product.getId())
                                 .toUri();
                 return ResponseEntity.created(uri).build();
         }
+
+        @PutMapping("/{productId}")
+        public ResponseEntity<Void> updateProduct(@Valid @Min(1L) @Max(Long.MAX_VALUE) @PathVariable Long productId,
+                        @Valid @NotNull @RequestBody ProductDto productDto) {
+                return productService.getProductById(productId)
+                                .map(Product::getId)
+                                .map(id -> {
+                                        productDto.setId(id);
+                                        return productDto;
+                                })
+                                .map(productMapper::productDtoToProduct)
+                                .map(productService::updateProduct)
+                                .map(pdt -> ResponseEntity.noContent().<Void>build())
+                                .orElseThrow(productNotFoundSupplier(productId));
+        }
+
+        @DeleteMapping("/{productId}")
+        public ResponseEntity<Void> deleteProductById(
+                        @Valid @Min(1L) @Max(Long.MAX_VALUE) @PathVariable Long productId) {
+                return productService.getProductById(productId)
+                                .map(Product::getId)
+                                .map(id -> {
+                                        productService.deleteProductById(id);
+                                        return ResponseEntity.noContent().<Void>build();
+                                })
+                                .orElseThrow(productNotFoundSupplier(productId));
+        }
+
 }

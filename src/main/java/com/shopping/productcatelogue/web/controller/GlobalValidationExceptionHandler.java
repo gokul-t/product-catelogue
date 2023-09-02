@@ -77,7 +77,7 @@ public class GlobalValidationExceptionHandler {
             ValidationErrorResponse.FieldError error = new ValidationErrorResponse.FieldError(
                     mismatchException.getName(),
                     "Failed to convert value to " + Optional.ofNullable(mismatchException.getRequiredType())
-                            .map(Class::getSimpleName).orElse("unknown type"),
+                            .map(Class::getSimpleName).orElse("Unknown Type"),
                     mismatchException.getValue());
             fieldErrors.add(error);
         }

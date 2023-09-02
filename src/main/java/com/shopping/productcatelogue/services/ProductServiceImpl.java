@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.shopping.productcatelogue.domain.Product;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
@@ -49,6 +51,16 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product saveProduct(Product product) {
         return productRepository.save(product);
+    }
+
+    @Override
+    public Product updateProduct(Product product) {
+        return productRepository.save(product);
+    }
+
+    @Override
+    public void deleteProductById(Long productId) {
+        productRepository.deleteById(productId);
     }
 
 }
