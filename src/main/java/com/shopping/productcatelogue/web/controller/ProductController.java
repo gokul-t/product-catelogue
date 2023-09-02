@@ -25,8 +25,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.shopping.productcatelogue.domain.Product;
 import com.shopping.productcatelogue.services.ProductService;
 import com.shopping.productcatelogue.web.mappers.ProductMapper;
+import com.shopping.productcatelogue.web.model.CreateInfo;
 import com.shopping.productcatelogue.web.model.PagedList;
 import com.shopping.productcatelogue.web.model.ProductDto;
+import com.shopping.productcatelogue.web.model.UpdateInfo;
 import com.shopping.productcatelogue.web.utils.WebUtils;
 
 import jakarta.validation.Valid;
@@ -52,17 +54,17 @@ public class ProductController {
         private Supplier<ResponseStatusException> productNotFoundException(Long productId) {
                 log.debug("Product id Not Found: {}", productId.toString());
                 return webUtils.notFoundException(
-                                                "products.errors.not_found", new Object[] { productId });
+                                "products.errors.not_found", new Object[] { productId });
         }
 
         @GetMapping
         public ResponseEntity<PagedList<ProductDto>> listProducts(
-                        @Valid @RequestParam(required = false) String name,
-                        @Valid @Pattern(regexp = "Large|Medium|Small", message = "{products.errors.invalid_size}") @RequestParam(required = false) String size,
-                        @Valid @PositiveOrZero() @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
-                        @Valid @Min(1) @Max(100) @RequestParam(required = false, defaultValue = "25") Integer pageSize,
-                        @Valid @Pattern(regexp = "id|name|size|quantity", message = "{products.errors.invalid_sort_by}") @RequestParam(required = false, defaultValue = "id") String sortBy,
-                        @Valid @RequestParam(required = false, defaultValue = "ASC") Sort.Direction sortDirection) {
+                        @RequestParam(required = false) String name,
+                        @Pattern(regexp = "Large|Medium|Small", message = "{products.errors.invalid_size}") @RequestParam(required = false) String size,
+                        @PositiveOrZero() @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
+                        @Min(1) @Max(100) @RequestParam(required = false, defaultValue = "25") Integer pageSize,
+                        @Pattern(regexp = "id|name|size|quantity", message = "{products.errors.invalid_sort_by}") @RequestParam(required = false, defaultValue = "id") String sortBy,
+                        @RequestParam(required = false, defaultValue = "ASC") Sort.Direction sortDirection) {
                 Sort sort = Sort.by(sortDirection, sortBy);
                 Page<Product> productPage = productService.listProducts(Optional.ofNullable(name),
                                 Optional.ofNullable(size),
@@ -74,14 +76,15 @@ public class ProductController {
 
         @GetMapping("/{productId}")
         public ResponseEntity<ProductDto> getProductById(
-                        @Valid @Min(1L) @Max(Long.MAX_VALUE) @PathVariable Long productId) {
+                        @Min(1L) @Max(Long.MAX_VALUE) @PathVariable Long productId) {
                 return productService.getProductById(productId).map(productMapper::productToProductDto)
                                 .map(ResponseEntity::ok)
                                 .orElseThrow(productNotFoundException(productId));
         }
 
         @PostMapping
-        public ResponseEntity<URI> saveProduct(@Valid @NotNull @RequestBody ProductDto productDto) {
+        public ResponseEntity<URI> saveProduct(
+                        @Validated(CreateInfo.class) @NotNull @RequestBody ProductDto productDto) {
                 Product product = Optional.of(productDto)
                                 .map(productMapper::productDtoToProduct)
                                 .map(productService::saveProduct)
@@ -94,14 +97,11 @@ public class ProductController {
         }
 
         @PutMapping("/{productId}")
-        public ResponseEntity<Void> updateProduct(@Valid @Min(1L) @Max(Long.MAX_VALUE) @PathVariable Long productId,
-                        @Valid @NotNull @RequestBody ProductDto productDto) {
+        public ResponseEntity<Void> updateProduct(@Min(1L) @Max(Long.MAX_VALUE) @PathVariable Long productId,
+                        @Validated(UpdateInfo.class) @NotNull @RequestBody ProductDto productDto) {
+                productDto.setId(productId);
                 return productService.getProductById(productId)
-                                .map(Product::getId)
-                                .map(id -> {
-                                        productDto.setId(id);
-                                        return productDto;
-                                })
+                                .map(pdt -> productDto)
                                 .map(productMapper::productDtoToProduct)
                                 .map(productService::updateProduct)
                                 .map(pdt -> ResponseEntity.noContent().<Void>build())
@@ -110,7 +110,7 @@ public class ProductController {
 
         @DeleteMapping("/{productId}")
         public ResponseEntity<Void> deleteProductById(
-                        @Valid @Min(1L) @Max(Long.MAX_VALUE) @PathVariable Long productId) {
+                        @Min(1L) @Max(Long.MAX_VALUE) @PathVariable Long productId) {
                 return productService.getProductById(productId)
                                 .map(Product::getId)
                                 .map(id -> {

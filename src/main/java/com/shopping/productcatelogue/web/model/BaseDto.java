@@ -13,10 +13,10 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BaseDto {
-    @Null
+    @Null(groups = CreateInfo.class)
     private Long id;
-    @Null
+    @Null(groups = CreateInfo.class)
     private OffsetDateTime createdAt;
-    @Null
+    @Null(groups = CreateInfo.class)
     private OffsetDateTime updatedAt;
 }
