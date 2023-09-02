@@ -27,7 +27,7 @@ import com.shopping.productcatelogue.services.ProductService;
 import com.shopping.productcatelogue.web.mappers.ProductMapper;
 import com.shopping.productcatelogue.web.model.PagedList;
 import com.shopping.productcatelogue.web.model.ProductDto;
-import com.shopping.productcatelogue.web.utils.MessageUtils;
+import com.shopping.productcatelogue.web.utils.WebUtils;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -47,24 +47,12 @@ public class ProductController {
 
         private final ProductService productService;
         private final ProductMapper productMapper;
-        private final MessageUtils messageUtils;
+        private final WebUtils webUtils;
 
-        private ResponseStatusException productNotValid() {
-                return new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
-                                messageUtils.getMessage("products.errors.not_valid"));
-
-        }
-
-        private ResponseStatusException productNotFound(Long productId) {
+        private Supplier<ResponseStatusException> productNotFoundException(Long productId) {
                 log.debug("Product id Not Found: {}", productId.toString());
-                return new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                messageUtils.getMessage(
-                                                "products.errors.not_found")
-                                                + productId);
-        }
-
-        private Supplier<ResponseStatusException> productNotFoundSupplier(Long productId) {
-                return () -> productNotFound(productId);
+                return webUtils.notFoundException(
+                                                "products.errors.not_found", new Object[] { productId });
         }
 
         @GetMapping
@@ -89,7 +77,7 @@ public class ProductController {
                         @Valid @Min(1L) @Max(Long.MAX_VALUE) @PathVariable Long productId) {
                 return productService.getProductById(productId).map(productMapper::productToProductDto)
                                 .map(ResponseEntity::ok)
-                                .orElseThrow(productNotFoundSupplier(productId));
+                                .orElseThrow(productNotFoundException(productId));
         }
 
         @PostMapping
@@ -97,10 +85,11 @@ public class ProductController {
                 Product product = Optional.of(productDto)
                                 .map(productMapper::productDtoToProduct)
                                 .map(productService::saveProduct)
-                                .orElseThrow(this::productNotValid);
+                                .orElseThrow(webUtils.notValidException("products.errors.not_valid"));
                 URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{productId}")
                                 .buildAndExpand(product.getId())
                                 .toUri();
+
                 return ResponseEntity.created(uri).build();
         }
 
@@ -116,7 +105,7 @@ public class ProductController {
                                 .map(productMapper::productDtoToProduct)
                                 .map(productService::updateProduct)
                                 .map(pdt -> ResponseEntity.noContent().<Void>build())
-                                .orElseThrow(productNotFoundSupplier(productId));
+                                .orElseThrow(productNotFoundException(productId));
         }
 
         @DeleteMapping("/{productId}")
@@ -128,7 +117,7 @@ public class ProductController {
                                         productService.deleteProductById(id);
                                         return ResponseEntity.noContent().<Void>build();
                                 })
-                                .orElseThrow(productNotFoundSupplier(productId));
+                                .orElseThrow(productNotFoundException(productId));
         }
 
 }
