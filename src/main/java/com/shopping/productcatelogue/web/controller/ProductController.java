@@ -24,10 +24,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.shopping.productcatelogue.domain.Product;
 import com.shopping.productcatelogue.services.ProductService;
 import com.shopping.productcatelogue.web.mappers.ProductMapper;
-import com.shopping.productcatelogue.web.model.CreateInfo;
+import com.shopping.productcatelogue.web.model.BasicInfo;
 import com.shopping.productcatelogue.web.model.PagedList;
 import com.shopping.productcatelogue.web.model.ProductDto;
-import com.shopping.productcatelogue.web.model.UpdateInfo;
+import com.shopping.productcatelogue.web.model.AdvanceInfo;
 import com.shopping.productcatelogue.web.utils.WebUtils;
 
 import jakarta.validation.constraints.NotNull;
@@ -46,7 +46,7 @@ public class ProductController {
 
         @PostMapping
         public ResponseEntity<URI> saveProduct(
-                        @Validated(CreateInfo.class) @NotNull @RequestBody ProductDto productDto) {
+                        @Validated(BasicInfo.class) @NotNull @RequestBody ProductDto productDto) {
                 return Optional.of(productDto)
                                 .map(productMapper::productDtoToProduct)
                                 .map(productService::saveProduct)
@@ -65,7 +65,7 @@ public class ProductController {
 
         @PutMapping("/{productId}")
         public ResponseEntity<Void> updateProduct(@PathVariable Long productId,
-                        @Validated(UpdateInfo.class) @NotNull @RequestBody ProductDto productDto) {
+                        @Validated(AdvanceInfo.class) @NotNull @RequestBody ProductDto productDto) {
                 return productService
                                 .updateProduct(productId, productDto.getName(), productDto.getQuantity(),
                                                 productDto.getSize())

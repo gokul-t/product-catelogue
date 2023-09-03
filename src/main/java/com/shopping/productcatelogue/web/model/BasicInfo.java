@@ -1,5 +1,5 @@
 package com.shopping.productcatelogue.web.model;
 
-public interface UpdateInfo {
-    
+public interface BasicInfo {
+
 }

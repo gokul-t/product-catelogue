@@ -15,12 +15,12 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BaseDto {
-    @Null(groups = CreateInfo.class)
-    @Min(value = 1L, groups = UpdateInfo.class) 
-    @Max(value = Long.MAX_VALUE, groups = UpdateInfo.class)
+    @Null(groups = BasicInfo.class)
+    @Min(value = 1L, groups = AdvanceInfo.class) 
+    @Max(value = Long.MAX_VALUE, groups = AdvanceInfo.class)
     private Long id;
-    @Null(groups = CreateInfo.class)
+    @Null(groups = BasicInfo.class)
     private OffsetDateTime createdAt;
-    @Null(groups = CreateInfo.class)
+    @Null(groups = BasicInfo.class)
     private OffsetDateTime updatedAt;
 }
