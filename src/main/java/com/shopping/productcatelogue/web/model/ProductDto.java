@@ -16,12 +16,12 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class ProductDto extends BaseDto {
-	@NotBlank(groups = { CreateInfo.class, UpdateInfo.class })
+	@NotBlank(groups = { BasicInfo.class, AdvanceInfo.class })
 	private String name;
-	@NotNull(groups = { CreateInfo.class, UpdateInfo.class })
-	@Positive(groups = { CreateInfo.class, UpdateInfo.class })
+	@NotNull(groups = { BasicInfo.class, AdvanceInfo.class })
+	@Positive(groups = { BasicInfo.class, AdvanceInfo.class })
 	private Integer quantity;
-	@NotNull(groups = { CreateInfo.class, UpdateInfo.class })
-	@Pattern(regexp = "Large|Medium|Small", groups = { CreateInfo.class, UpdateInfo.class })
+	@NotNull(groups = { BasicInfo.class, AdvanceInfo.class })
+	@Pattern(regexp = "Large|Medium|Small", groups = { BasicInfo.class, AdvanceInfo.class })
 	private String size;
 }
