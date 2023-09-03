@@ -6,6 +6,8 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,10 @@ import com.shopping.productcatelogue.domain.Product;
 import com.shopping.productcatelogue.domain.QProduct;
 import com.shopping.productcatelogue.repositories.ProductRepository;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -29,8 +35,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product updateProduct(Product product) {
-        return productRepository.save(product);
+    public Optional<Product> updateProduct(Long id, String name, Integer quantity, String size) {
+        return getProductById(id)
+                .map(product -> {
+                    product.setName(name);
+                    product.setQuantity(quantity);
+                    product.setSize(size);
+                    return product;
+                }).map(productRepository::save);
     }
 
     @Override
@@ -43,8 +55,7 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findById(productId);
     }
 
-    @Override
-    public Page<Product> listProducts(Optional<String> nameOptional,
+    private Page<Product> listProducts(Optional<String> nameOptional,
             Optional<String> sizeOptional,
             PageRequest pageRequest) {
         QProduct qProduct = QProduct.product;
@@ -61,6 +72,18 @@ public class ProductServiceImpl implements ProductService {
                 .reduce(BooleanExpression::and)
                 .map(joined -> productRepository.findAll(joined, pageRequest))
                 .orElseGet(() -> productRepository.findAll(pageRequest));
+    }
+
+    @Override
+    public Page<Product> listProducts(String name,
+            @Pattern(regexp = "Large|Medium|Small", message = "{products.errors.invalid_size}") String size,
+            @PositiveOrZero Integer pageNumber, @Min(1) @Max(100) Integer pageSize,
+            @Pattern(regexp = "id|name|size|quantity", message = "{products.errors.invalid_sort_by}") String sortBy,
+            Direction sortDirection) {
+        Sort sort = Sort.by(sortDirection, sortBy);
+        return listProducts(Optional.ofNullable(name),
+                Optional.ofNullable(size),
+                PageRequest.of(pageNumber, pageSize, sort));
     }
 
 }
