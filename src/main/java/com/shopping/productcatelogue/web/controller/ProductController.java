@@ -31,7 +31,6 @@ import com.shopping.productcatelogue.web.model.ProductDto;
 import com.shopping.productcatelogue.web.model.UpdateInfo;
 import com.shopping.productcatelogue.web.utils.WebUtils;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -51,49 +50,23 @@ public class ProductController {
         private final ProductMapper productMapper;
         private final WebUtils webUtils;
 
-        private Supplier<ResponseStatusException> productNotFoundException(Long productId) {
-                log.debug("Product id Not Found: {}", productId.toString());
-                return webUtils.notFoundException(
-                                "products.errors.not_found", new Object[] { productId });
-        }
-
-        @GetMapping
-        public ResponseEntity<PagedList<ProductDto>> listProducts(
-                        @RequestParam(required = false) String name,
-                        @Pattern(regexp = "Large|Medium|Small", message = "{products.errors.invalid_size}") @RequestParam(required = false) String size,
-                        @PositiveOrZero() @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
-                        @Min(1) @Max(100) @RequestParam(required = false, defaultValue = "25") Integer pageSize,
-                        @Pattern(regexp = "id|name|size|quantity", message = "{products.errors.invalid_sort_by}") @RequestParam(required = false, defaultValue = "id") String sortBy,
-                        @RequestParam(required = false, defaultValue = "ASC") Sort.Direction sortDirection) {
-                Sort sort = Sort.by(sortDirection, sortBy);
-                Page<Product> productPage = productService.listProducts(Optional.ofNullable(name),
-                                Optional.ofNullable(size),
-                                PageRequest.of(pageNumber, pageSize, sort));
-                PagedList<ProductDto> productPagedList = PagedList.getPagedList(productPage,
-                                productMapper::productToProductDto);
-                return new ResponseEntity<>(productPagedList, HttpStatus.OK);
-        }
-
-        @GetMapping("/{productId}")
-        public ResponseEntity<ProductDto> getProductById(
-                        @Min(1L) @Max(Long.MAX_VALUE) @PathVariable Long productId) {
-                return productService.getProductById(productId).map(productMapper::productToProductDto)
-                                .map(ResponseEntity::ok)
-                                .orElseThrow(productNotFoundException(productId));
-        }
-
         @PostMapping
         public ResponseEntity<URI> saveProduct(
                         @Validated(CreateInfo.class) @NotNull @RequestBody ProductDto productDto) {
-                Product product = Optional.of(productDto)
+                return Optional.of(productDto)
                                 .map(productMapper::productDtoToProduct)
                                 .map(productService::saveProduct)
-                                .orElseThrow(webUtils.notValidException("products.errors.not_valid"));
-                URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{productId}")
-                                .buildAndExpand(product.getId())
-                                .toUri();
+                                .map(Product::getId)
+                                .map(id -> ServletUriComponentsBuilder.fromCurrentRequest().path("/{productId}")
+                                                .buildAndExpand(id)
+                                                .toUri())
+                                .map(uri -> ResponseEntity.created(uri).<URI>build())
+                                .orElseThrow(productNotValidException(productDto));
+        }
 
-                return ResponseEntity.created(uri).build();
+        private Supplier<ResponseStatusException> productNotValidException(ProductDto productDto) {
+                log.debug("Product Not Valid: {}", productDto.toString());
+                return webUtils.notValidException("products.errors.not_valid");
         }
 
         @PutMapping("/{productId}")
@@ -118,6 +91,37 @@ public class ProductController {
                                         return ResponseEntity.noContent().<Void>build();
                                 })
                                 .orElseThrow(productNotFoundException(productId));
+        }
+
+        @GetMapping("/{productId}")
+        public ResponseEntity<ProductDto> getProductById(
+                        @Min(1L) @Max(Long.MAX_VALUE) @PathVariable Long productId) {
+                return productService.getProductById(productId).map(productMapper::productToProductDto)
+                                .map(ResponseEntity::ok)
+                                .orElseThrow(productNotFoundException(productId));
+        }
+
+        private Supplier<ResponseStatusException> productNotFoundException(Long productId) {
+                log.debug("Product id Not Found: {}", productId.toString());
+                return webUtils.notFoundException(
+                                "products.errors.not_found", new Object[] { productId });
+        }
+
+        @GetMapping
+        public ResponseEntity<PagedList<ProductDto>> listProducts(
+                        @RequestParam(required = false) String name,
+                        @Pattern(regexp = "Large|Medium|Small", message = "{products.errors.invalid_size}") @RequestParam(required = false) String size,
+                        @PositiveOrZero() @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
+                        @Min(1) @Max(100) @RequestParam(required = false, defaultValue = "25") Integer pageSize,
+                        @Pattern(regexp = "id|name|size|quantity", message = "{products.errors.invalid_sort_by}") @RequestParam(required = false, defaultValue = "id") String sortBy,
+                        @RequestParam(required = false, defaultValue = "ASC") Sort.Direction sortDirection) {
+                Sort sort = Sort.by(sortDirection, sortBy);
+                Page<Product> productPage = productService.listProducts(Optional.ofNullable(name),
+                                Optional.ofNullable(size),
+                                PageRequest.of(pageNumber, pageSize, sort));
+                PagedList<ProductDto> productPagedList = PagedList.getPagedList(productPage,
+                                productMapper::productToProductDto);
+                return new ResponseEntity<>(productPagedList, HttpStatus.OK);
         }
 
 }

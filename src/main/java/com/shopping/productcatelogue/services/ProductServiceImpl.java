@@ -24,6 +24,26 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
 
     @Override
+    public Product saveProduct(Product product) {
+        return productRepository.save(product);
+    }
+
+    @Override
+    public Product updateProduct(Product product) {
+        return productRepository.save(product);
+    }
+
+    @Override
+    public void deleteProductById(Long productId) {
+        productRepository.deleteById(productId);
+    }
+
+    @Override
+    public Optional<Product> getProductById(Long productId) {
+        return productRepository.findById(productId);
+    }
+
+    @Override
     public Page<Product> listProducts(Optional<String> nameOptional,
             Optional<String> sizeOptional,
             PageRequest pageRequest) {
@@ -41,26 +61,6 @@ public class ProductServiceImpl implements ProductService {
                 .reduce(BooleanExpression::and)
                 .map(joined -> productRepository.findAll(joined, pageRequest))
                 .orElseGet(() -> productRepository.findAll(pageRequest));
-    }
-
-    @Override
-    public Optional<Product> getProductById(Long productId) {
-        return productRepository.findById(productId);
-    }
-
-    @Override
-    public Product saveProduct(Product product) {
-        return productRepository.save(product);
-    }
-
-    @Override
-    public Product updateProduct(Product product) {
-        return productRepository.save(product);
-    }
-
-    @Override
-    public void deleteProductById(Long productId) {
-        productRepository.deleteById(productId);
     }
 
 }
