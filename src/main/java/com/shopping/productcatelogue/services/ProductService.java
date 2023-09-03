@@ -3,15 +3,10 @@ package com.shopping.productcatelogue.services;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import com.shopping.productcatelogue.domain.Product;
-import com.shopping.productcatelogue.web.model.PagedList;
-import com.shopping.productcatelogue.web.model.ProductDto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
