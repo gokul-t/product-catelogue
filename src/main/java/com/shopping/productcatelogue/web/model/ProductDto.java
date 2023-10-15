@@ -1,5 +1,8 @@
 package com.shopping.productcatelogue.web.model;
 
+import com.shopping.productcatelogue.web.model.info.AdvanceInfo;
+import com.shopping.productcatelogue.web.model.info.BasicInfo;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;

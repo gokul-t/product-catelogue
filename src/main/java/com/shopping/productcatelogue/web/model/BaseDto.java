@@ -2,6 +2,9 @@ package com.shopping.productcatelogue.web.model;
 
 import java.time.OffsetDateTime;
 
+import com.shopping.productcatelogue.web.model.info.AdvanceInfo;
+import com.shopping.productcatelogue.web.model.info.BasicInfo;
+
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Null;

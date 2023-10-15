@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,10 +25,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.shopping.productcatelogue.domain.Product;
 import com.shopping.productcatelogue.services.ProductService;
 import com.shopping.productcatelogue.web.mappers.ProductMapper;
-import com.shopping.productcatelogue.web.model.BasicInfo;
 import com.shopping.productcatelogue.web.model.PagedList;
 import com.shopping.productcatelogue.web.model.ProductDto;
-import com.shopping.productcatelogue.web.model.AdvanceInfo;
+import com.shopping.productcatelogue.web.model.info.AdvanceInfo;
+import com.shopping.productcatelogue.web.model.info.BasicInfo;
 import com.shopping.productcatelogue.web.utils.WebUtils;
 
 import jakarta.validation.constraints.NotNull;
@@ -38,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(exposedHeaders = { "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials", "Location" })
 public class ProductController {
 
         private final ProductService productService;
