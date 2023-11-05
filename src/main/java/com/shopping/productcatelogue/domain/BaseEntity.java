@@ -36,6 +36,6 @@ public abstract class BaseEntity implements Serializable {
     private Timestamp createdAt;
 
     @UpdateTimestamp
-    @Column(nullable = false)
+    @Column(updatable = false, nullable = false)
     private Timestamp updatedAt;
 }

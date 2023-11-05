@@ -1,10 +1,9 @@
-package com.shopping.productcatelogue.web.controller;
+package com.shopping.productcatelogue.web.controllers;
 
 import java.net.URI;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,13 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import com.shopping.productcatelogue.domain.Product;
+import com.shopping.productcatelogue.model.PagedList;
+import com.shopping.productcatelogue.model.ProductDTO;
+import com.shopping.productcatelogue.model.info.AdvanceInfo;
+import com.shopping.productcatelogue.model.info.BasicInfo;
 import com.shopping.productcatelogue.services.ProductService;
-import com.shopping.productcatelogue.web.mappers.ProductMapper;
-import com.shopping.productcatelogue.web.model.PagedList;
-import com.shopping.productcatelogue.web.model.ProductDto;
-import com.shopping.productcatelogue.web.model.info.AdvanceInfo;
-import com.shopping.productcatelogue.web.model.info.BasicInfo;
 import com.shopping.productcatelogue.web.utils.WebUtils;
 
 import jakarta.validation.constraints.NotNull;
@@ -43,34 +40,31 @@ import lombok.extern.slf4j.Slf4j;
 public class ProductController {
 
         private final ProductService productService;
-        private final ProductMapper productMapper;
         private final WebUtils webUtils;
 
         @PostMapping
-        public ResponseEntity<URI> saveProduct(
-                        @Validated(BasicInfo.class) @NotNull @RequestBody ProductDto productDto) {
-                return Optional.of(productDto)
-                                .map(productMapper::productDtoToProduct)
+        public ResponseEntity<URI> saveProduct(@NotNull @Validated(BasicInfo.class)
+                        @RequestBody ProductDTO productDTO) {
+                return Optional.of(productDTO)
                                 .map(productService::saveProduct)
-                                .map(Product::getId)
+                                .map(ProductDTO::getId)
                                 .map(id -> ServletUriComponentsBuilder.fromCurrentRequest().path("/{productId}")
                                                 .buildAndExpand(id)
                                                 .toUri())
                                 .map(uri -> ResponseEntity.created(uri).<URI>build())
-                                .orElseThrow(productNotValidException(productDto));
+                                .orElseThrow(productNotValidException(productDTO));
         }
 
-        private Supplier<ResponseStatusException> productNotValidException(ProductDto productDto) {
-                log.debug("Product Not Valid: {}", productDto.toString());
+        private Supplier<ResponseStatusException> productNotValidException(ProductDTO productDTO) {
+                log.debug("Product Not Valid: {}", productDTO.toString());
                 return webUtils.notValidException("products.errors.not_valid");
         }
 
         @PutMapping("/{productId}")
-        public ResponseEntity<Void> updateProduct(@PathVariable Long productId,
-                        @Validated(AdvanceInfo.class) @NotNull @RequestBody ProductDto productDto) {
+        public ResponseEntity<Void> updateProduct(@PathVariable Long productId, @NotNull @Validated(AdvanceInfo.class) @RequestBody ProductDTO productDTO) {
+                productDTO.setId(productId);
                 return productService
-                                .updateProduct(productId, productDto.getName(), productDto.getQuantity(),
-                                                productDto.getSize())
+                                .updateProduct(productDTO)
                                 .map(pdt -> ResponseEntity.noContent().<Void>build())
                                 .orElseThrow(productNotFoundException(productId));
         }
@@ -78,19 +72,15 @@ public class ProductController {
         @DeleteMapping("/{productId}")
         public ResponseEntity<Void> deleteProductById(
                         @PathVariable Long productId) {
-                return productService.getProductById(productId)
-                                .map(Product::getId)
-                                .map(id -> {
-                                        productService.deleteProductById(id);
-                                        return ResponseEntity.noContent().<Void>build();
-                                })
+                return productService.deleteProductById(productId)
+                                .map(pdt -> ResponseEntity.noContent().<Void>build())
                                 .orElseThrow(productNotFoundException(productId));
         }
 
         @GetMapping("/{productId}")
-        public ResponseEntity<ProductDto> getProductById(
+        public ResponseEntity<ProductDTO> getProductById(
                         @PathVariable Long productId) {
-                return productService.getProductById(productId).map(productMapper::productToProductDto)
+                return productService.getProductById(productId)
                                 .map(ResponseEntity::ok)
                                 .orElseThrow(productNotFoundException(productId));
         }
@@ -102,17 +92,16 @@ public class ProductController {
         }
 
         @GetMapping
-        public ResponseEntity<PagedList<ProductDto>> listProducts(
+        public ResponseEntity<PagedList<ProductDTO>> listProducts(
                         @RequestParam(required = false) String name,
                         @RequestParam(required = false) String size,
                         @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
                         @RequestParam(required = false, defaultValue = "25") Integer pageSize,
                         @RequestParam(required = false, defaultValue = "id") String sortBy,
                         @RequestParam(required = false, defaultValue = "ASC") Sort.Direction sortDirection) {
-                Page<Product> productPage = productService.listProducts(name, size, pageNumber, pageSize, sortBy,
+                PagedList<ProductDTO> productPagedList = productService.listProducts(name, size, pageNumber, pageSize,
+                                sortBy,
                                 sortDirection);
-                PagedList<ProductDto> productPagedList = PagedList.getPagedList(productPage,
-                                productMapper::productToProductDto);
                 return new ResponseEntity<>(productPagedList, HttpStatus.OK);
         }
 

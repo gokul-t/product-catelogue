@@ -1,4 +1,4 @@
-package com.shopping.productcatelogue.web.mappers;
+package com.shopping.productcatelogue.mappers;
 
 import java.sql.Timestamp;
 import java.time.OffsetDateTime;
