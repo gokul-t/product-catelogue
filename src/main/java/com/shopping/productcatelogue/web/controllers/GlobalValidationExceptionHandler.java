@@ -1,4 +1,4 @@
-package com.shopping.productcatelogue.web.controller;
+package com.shopping.productcatelogue.web.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.shopping.productcatelogue.web.model.ErrorResponse;
-import com.shopping.productcatelogue.web.model.ValidationErrorResponse;
+import com.shopping.productcatelogue.model.ErrorResponse;
+import com.shopping.productcatelogue.model.ValidationErrorResponse;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -32,8 +32,9 @@ public class GlobalValidationExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error",
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unknown error",
                 ex.getMessage());
+        log.info("Unknown error");
         log.error(ex.getMessage(), ex);
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

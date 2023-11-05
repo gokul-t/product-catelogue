@@ -1,4 +1,7 @@
-package com.shopping.productcatelogue.web.model;
+package com.shopping.productcatelogue.model;
+
+import com.shopping.productcatelogue.model.info.AdvanceInfo;
+import com.shopping.productcatelogue.model.info.BasicInfo;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +18,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class ProductDto extends BaseDto {
+public class ProductDTO extends BaseDTO {
 	@NotBlank(groups = { BasicInfo.class, AdvanceInfo.class })
 	private String name;
 	@NotNull(groups = { BasicInfo.class, AdvanceInfo.class })

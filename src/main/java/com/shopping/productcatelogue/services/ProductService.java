@@ -2,11 +2,11 @@ package com.shopping.productcatelogue.services;
 
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.validation.annotation.Validated;
 
-import com.shopping.productcatelogue.domain.Product;
+import com.shopping.productcatelogue.model.PagedList;
+import com.shopping.productcatelogue.model.ProductDTO;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -17,17 +17,15 @@ import jakarta.validation.constraints.PositiveOrZero;
 @Validated
 public interface ProductService {
 
-        Product saveProduct(@NotNull Product product);
+        ProductDTO saveProduct(ProductDTO productDTO);
 
-        Optional<Product> updateProduct(@Min(1L) @Max(Long.MAX_VALUE) @NotNull Long productId, String name,
-                        Integer quantity,
-                        String size);
+        Optional<ProductDTO> updateProduct(ProductDTO productDTO);
 
-        void deleteProductById(@Min(1L) @Max(Long.MAX_VALUE) @NotNull Long productId);
+        Optional<ProductDTO> deleteProductById(@Min(1L) @Max(Long.MAX_VALUE) @NotNull Long productId);
 
-        Optional<Product> getProductById(@Min(1L) @Max(Long.MAX_VALUE) @NotNull Long productId);
+        Optional<ProductDTO> getProductById(@Min(1L) @Max(Long.MAX_VALUE) @NotNull Long productId);
 
-        Page<Product> listProducts(
+        PagedList<ProductDTO> listProducts(
                         String name,
                         @Pattern(regexp = "Large|Medium|Small", message = "{products.errors.invalid_size}") String size,
                         @PositiveOrZero() Integer pageNumber,

@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.shopping.productcatelogue.web.model.ProductDto;
+import com.shopping.productcatelogue.model.ProductDTO;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -45,24 +45,28 @@ public class ProductContollerTests {
     @Nested
     class TestSaveProduct {
         @Test
-        public void shouldReturnBadRequest() throws Exception {
-            ProductDto productDto = ProductDto.builder().build();
+        void shouldReturnBadRequest1() throws Exception {
+            ProductDTO productDTO = ProductDTO.builder().build();
             mockMvc.perform(
-                    post("/api/products").content(asJsonString(productDto)).contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isBadRequest());
-            productDto = ProductDto.builder().name("Chair").size("No").quantity(100).build();
-            mockMvc.perform(
-                    post("/api/products").content(asJsonString(productDto)).contentType(MediaType.APPLICATION_JSON))
+                    post("/api/products").content(asJsonString(productDTO)).contentType(MediaType.APPLICATION_JSON))
                     .andDo(print())
                     .andExpect(status().isBadRequest());
         }
 
         @Test
-        public void shouldReturnProduct() throws Exception {
-            ProductDto productDto = ProductDto.builder().name("Chair").size("Small").quantity(100).build();
+        void shouldReturnBadRequest2() throws Exception {
+            ProductDTO productDTO = ProductDTO.builder().name("Chair").size("No").quantity(100).build();
             mockMvc.perform(
-                    post("/api/products").content(asJsonString(productDto)).contentType(MediaType.APPLICATION_JSON))
+                    post("/api/products").content(asJsonString(productDTO)).contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldReturnProduct() throws Exception {
+            ProductDTO productDTO = ProductDTO.builder().name("Chair").size("Small").quantity(100).build();
+            mockMvc.perform(
+                    post("/api/products").content(asJsonString(productDTO)).contentType(MediaType.APPLICATION_JSON))
                     .andDo(print())
                     .andExpect(status().isCreated());
         }
@@ -72,26 +76,30 @@ public class ProductContollerTests {
     @Nested
     class TestUpdateProduct {
         @Test
-        public void shouldReturnBadRequest() throws Exception {
-            ProductDto productDto = ProductDto.builder().build();
+        void shouldReturnBadRequest1() throws Exception {
+            ProductDTO productDTO = ProductDTO.builder().build();
             mockMvc.perform(
-                    put("/api/products/{productId}", 1).content(asJsonString(productDto))
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isBadRequest());
-            productDto = ProductDto.builder().id(1000L).name("Chair").size("No").quantity(100).build();
-            mockMvc.perform(
-                    put("/api/products/{productId}", 1000).content(asJsonString(productDto))
+                    put("/api/products/{productId}", 1).content(asJsonString(productDTO))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andDo(print())
                     .andExpect(status().isBadRequest());
         }
 
         @Test
-        public void shouldUpdateProduct() throws Exception {
-            ProductDto productDto = ProductDto.builder().id(1L).name("Chair").size("Small").quantity(100).build();
+        void shouldReturnBadRequest2() throws Exception {
+            ProductDTO productDTO = ProductDTO.builder().id(1000L).name("Chair").size("No").quantity(100).build();
             mockMvc.perform(
-                    put("/api/products/{productId}", productDto.getId()).content(asJsonString(productDto))
+                    put("/api/products/{productId}", 1000).content(asJsonString(productDTO))
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldUpdateProduct() throws Exception {
+            ProductDTO productDTO = ProductDTO.builder().id(1L).name("Chair").size("Small").quantity(100).build();
+            mockMvc.perform(
+                    put("/api/products/{productId}", productDTO.getId()).content(asJsonString(productDTO))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andDo(print())
                     .andExpect(status().isNoContent());
@@ -102,7 +110,7 @@ public class ProductContollerTests {
     @Nested
     class TestDeleteProduct {
         @Test
-        public void shouldReturnBadRequest() throws Exception {
+        void shouldReturnBadRequest() throws Exception {
             mockMvc.perform(delete("/api/products/{productId}", "hello")).andDo(print())
                     .andExpect(status().isBadRequest());
             mockMvc.perform(delete("/api/products/{productId}", "100000")).andDo(print())
@@ -110,7 +118,7 @@ public class ProductContollerTests {
         }
 
         @Test
-        public void shouldDeleteProduct() throws Exception {
+        void shouldDeleteProduct() throws Exception {
             mockMvc.perform(delete("/api/products/{productId}", 101)).andDo(print()).andExpect(status().isNoContent());
         }
     }
@@ -119,15 +127,25 @@ public class ProductContollerTests {
     @Nested
     class TestGetProduct {
         @Test
-        public void shouldReturnBadRequest() throws Exception {
+        void shouldReturnBadRequest1() throws Exception {
             mockMvc.perform(get("/api/products/{productId}", "hello")).andDo(print())
-                    .andExpect(status().isBadRequest());
-            mockMvc.perform(get("/api/products/{productId}", "100000")).andDo(print())
                     .andExpect(status().isBadRequest());
         }
 
         @Test
-        public void shouldReturnProduct() throws Exception {
+        void shouldReturnBadRequest2() throws Exception {
+            mockMvc.perform(get("/api/products/{productId}", 100000)).andDo(print())
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldReturnBadRequest3() throws Exception {
+            mockMvc.perform(get("/api/products/{productId}", -5)).andDo(print())
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldReturnProduct() throws Exception {
             mockMvc.perform(get("/api/products/{productId}", 1)).andDo(print()).andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON));
         }
@@ -137,7 +155,23 @@ public class ProductContollerTests {
     @Nested
     class TestListProducts {
         @Test
-        public void shouldReturnProductList() throws Exception {
+        void shouldReturnBadRequest() throws Exception {
+            mockMvc.perform(
+                    get("/api/products")
+                            .param("pageNumber", "-1")
+                            .param("pageSize", "10"))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
+            mockMvc.perform(
+                    get("/api/products")
+                            .param("pageNumber", "0")
+                            .param("pageSize", "-5"))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldReturnProductList() throws Exception {
             mockMvc.perform(
                     get("/api/products")
                             .param("pageNumber", "0")

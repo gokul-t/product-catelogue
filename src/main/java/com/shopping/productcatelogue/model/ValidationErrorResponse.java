@@ -1,4 +1,4 @@
-package com.shopping.productcatelogue.web.model;
+package com.shopping.productcatelogue.model;
 
 import java.util.List;
 
